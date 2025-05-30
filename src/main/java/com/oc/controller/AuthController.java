@@ -60,7 +60,6 @@ public class AuthController {
             // Get user ID
             Optional<User> userOptional = userRepository.findByEmail(loginRequest.getLogin());
             if (userOptional.isPresent()) {
-                User user = userOptional.get();
                 LoginResponse response = new LoginResponse(jwt);
                 return ResponseEntity.ok(response);
             } else {
