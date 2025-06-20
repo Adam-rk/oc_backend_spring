@@ -40,9 +40,16 @@ public class SpringSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors().and()
+                .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> {
+                // Swagger UI and OpenAPI endpoints
+                auth.requestMatchers("/swagger-ui/**").permitAll();
+                auth.requestMatchers("/v3/api-docs/**").permitAll();
+                auth.requestMatchers("/swagger-resources/**").permitAll();
+                auth.requestMatchers("/webjars/**").permitAll();
+                
+                // API endpoints
                 auth.requestMatchers("/api/auth/me").authenticated();   
                 auth.requestMatchers("/api/auth/**").permitAll();
                 auth.requestMatchers(HttpMethod.GET, "/api/rentals/**").permitAll();    
@@ -52,7 +59,6 @@ public class SpringSecurityConfig {
         
         // Add JWT filter before UsernamePasswordAuthenticationFilter
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
-            
         return http.build();
     }
 
@@ -64,19 +70,5 @@ public class SpringSecurityConfig {
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-    
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*")); // Allow all origins
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")); // Allow all methods
-        configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token")); // Allow these headers
-        configuration.setExposedHeaders(Arrays.asList("x-auth-token")); // Expose these headers
-        configuration.setAllowCredentials(false); // Don't allow credentials
-        
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // Apply to all paths
-        return source;
     }
 }

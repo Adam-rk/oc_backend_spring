@@ -7,6 +7,7 @@ import com.oc.dto.RegisterRequest;
 import com.oc.dto.UserResponse;
 import com.oc.model.User;
 import com.oc.repository.UserRepository;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -57,6 +59,8 @@ public class AuthController {
             final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             final String jwt = jwtUtil.generateToken(userDetails);
 
+            System.out.print(loginRequest.getLogin());
+            System.out.print(loginRequest.getPassword());
             // Get user ID
             Optional<User> userOptional = userRepository.findByEmail(loginRequest.getLogin());
             if (userOptional.isPresent()) {
@@ -66,7 +70,8 @@ public class AuthController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User not found");
             }
         } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid login or password");
+            System.out.print(e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("TEST Invalid login or password");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Authentication error: " + e.getMessage());
         }
@@ -113,7 +118,8 @@ public class AuthController {
                     .body("Registration error: " + e.getMessage());
         }
     }
-    
+
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser() {
         try {
