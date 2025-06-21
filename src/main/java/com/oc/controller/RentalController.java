@@ -81,7 +81,7 @@ public class RentalController {
         try {
             // Get all rentals with DTO conversion from service
             List<RentalDTO> dtos = rentalService.getAllRentals();
-            return ResponseEntity.ok(dtos);
+            return ResponseEntity.ok(new RentalsResponse(dtos));
             
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

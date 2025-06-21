@@ -1,7 +1,7 @@
 package com.oc.dto;
 
 public class LoginRequest {
-    private String login;
+    private String email;
     private String password;
 
     // Default constructor
@@ -9,18 +9,18 @@ public class LoginRequest {
     }
 
     // Constructor with parameters
-    public LoginRequest(String login, String password) {
-        this.login = login;
+    public LoginRequest(String email, String password) {
+        this.email = email;
         this.password = password;
     }
 
     // Getters and setters
-    public String getLogin() {
-        return login;
+    public String getEmail() {
+        return email;
     }
 
-    public void setLogin(String login) {
-        this.login = login;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPassword() {

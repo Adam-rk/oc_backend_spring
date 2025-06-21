@@ -17,6 +17,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,43 +41,38 @@ public class AuthController {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+    @Autowired
+    private UserDetailsService userDetailsService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        try {
-            // Authenticate the user
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginRequest.getLogin(),
-                            loginRequest.getPassword()
-                    )
-            );
 
-            // Generate JWT token
-            final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            final String jwt = jwtUtil.generateToken(userDetails);
 
-            System.out.print(loginRequest.getLogin());
-            System.out.print(loginRequest.getPassword());
-            // Get user ID
-            Optional<User> userOptional = userRepository.findByEmail(loginRequest.getLogin());
-            if (userOptional.isPresent()) {
+        User user = new User();
+        user.setEmail(loginRequest.getEmail());
+        user.setPassword(loginRequest.getPassword());
+
+        Optional<User> dbUser = userRepository.findByEmail(user.getEmail());
+        System.out.println(user.getEmail());
+        System.out.println(user.getPassword());
+        if (dbUser.isPresent()) {
+            User retrievedUser = dbUser.get();
+            if (passwordEncoder.matches(loginRequest.getPassword(), retrievedUser.getPassword())) {
+                // Generate token
+                final String jwt = jwtUtil.generateToken(user);
+
+                // Return token
                 LoginResponse response = new LoginResponse(jwt);
                 return ResponseEntity.ok(response);
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User not found");
             }
-        } catch (BadCredentialsException e) {
-            System.out.print(e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("TEST Invalid login or password");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Authentication error: " + e.getMessage());
         }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid login or password");
     }
-    
+
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
         try {
@@ -85,34 +81,27 @@ public class AuthController {
             if (existingUser.isPresent()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email already in use");
             }
-            
+
             // Create new user
             User newUser = new User();
             newUser.setEmail(registerRequest.getEmail());
             newUser.setName(registerRequest.getName());
             newUser.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-            
+
             // Set creation and update timestamps
             LocalDateTime now = LocalDateTime.now();
             newUser.setCreatedAt(now);
             newUser.setUpdatedAt(now);
-            
+
             // Save user to database
             userRepository.save(newUser);
-            
-            // Generate JWT token for the new user
-            final UserDetails userDetails = org.springframework.security.core.userdetails.User
-                    .withUsername(newUser.getEmail())
-                    .password(newUser.getPassword())
-                    .authorities("ROLE_USER")
-                    .build();
-            
-            final String jwt = jwtUtil.generateToken(userDetails);
-            
+
+            final String jwt = jwtUtil.generateToken(newUser);
+
             // Return token
             LoginResponse response = new LoginResponse(jwt);
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Registration error: " + e.getMessage());
@@ -126,7 +115,7 @@ public class AuthController {
             // Get the authenticated user's username (email)
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String email = authentication.getName();
-            
+
             // Find the user in the database
             Optional<User> userOptional = userRepository.findByEmail(email);
             if (userOptional.isPresent()) {
