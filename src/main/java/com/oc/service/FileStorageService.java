@@ -10,6 +10,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.util.StringUtils;
 
 @Service
 public class FileStorageService {
@@ -43,6 +46,33 @@ public class FileStorageService {
         Path targetLocation = uploadPath.resolve(filename);
         Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-        return filename;
+        return "http://localhost:3001/api/rentals/files/"+filename;
+    }
+    
+    /**
+     * Load a file as a Resource by its filename
+     *
+     * @param filename The name of the file to load
+     * @return The file as a Resource
+     * @throws IOException If the file cannot be loaded
+     */
+    public Resource loadFileAsResource(String filename) throws IOException {
+        Path filePath = Paths.get(uploadDir).resolve(filename).normalize();
+        Resource resource = new UrlResource(filePath.toUri());
+        
+        if (resource.exists()) {
+            return resource;
+        } else {
+            throw new IOException("File not found: " + filename);
+        }
+    }
+    
+    /**
+     * Get the upload directory path
+     *
+     * @return The path to the upload directory
+     */
+    public String getUploadDir() {
+        return uploadDir;
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -162,9 +163,9 @@ public class RentalService {
         List<Rental> rentals = rentalRepository.findAll();
         
         // Convert to DTOs
-        List<RentalDTO> rentalDTOs = rentals.stream()
-                .map(rental -> new RentalDTO(rental))
-                .collect(Collectors.toList());
+        List<RentalDTO> rentalDTOs = new ArrayList<>();
+
+        rentals.forEach((rental) -> rentalDTOs.add(new RentalDTO(rental)));
         
         return rentalDTOs;
     }

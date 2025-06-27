@@ -1,6 +1,7 @@
 package com.oc.dto;
 
 import com.oc.model.Rental;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -13,27 +14,27 @@ public class RentalDTO {
     private String name;
     private BigDecimal surface;
     private BigDecimal price;
-    private String[] picture;
+    private String picture;
     private String description;
     private Integer owner_id;
     private String created_at;
     private String updated_at;
-    
+
     // Default constructor
     public RentalDTO() {
     }
-    
+
     // Constructor from Rental entity
     public RentalDTO(Rental rental) {
         this.id = rental.getId();
         this.name = rental.getName();
         this.surface = rental.getSurface();
         this.price = rental.getPrice();
-        // Convert single picture to array
-        this.picture = rental.getPicture() != null ? new String[]{rental.getPicture()} : new String[0];
+        // Store the picture filename
+        this.picture = rental.getPicture();
         this.description = rental.getDescription();
         this.owner_id = rental.getOwner().getId();
-        
+
         // Format dates as yyyy/MM/dd
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
         this.created_at = rental.getCreatedAt().format(formatter);
@@ -73,11 +74,11 @@ public class RentalDTO {
         this.price = price;
     }
     
-    public String[] getPicture() {
+    public String getPicture() {
         return picture;
     }
     
-    public void setPicture(String[] picture) {
+    public void setPicture(String picture) {
         this.picture = picture;
     }
     

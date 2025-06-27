@@ -40,7 +40,6 @@ public class SpringSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors().and()
                 .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> {
                 // Swagger UI and OpenAPI endpoints
