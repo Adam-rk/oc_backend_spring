@@ -7,6 +7,12 @@ import com.oc.dto.RegisterRequest;
 import com.oc.dto.UserResponse;
 import com.oc.model.User;
 import com.oc.repository.UserRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -47,8 +53,15 @@ public class AuthController {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    @Operation(summary = "User login", description = "Authenticates a user and returns a JWT token")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Login successful", 
+                content = @Content(schema = @Schema(implementation = LoginResponse.class))),
+        @ApiResponse(responseCode = "401", description = "Invalid login or password")
+    })
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(
+            @Parameter(description = "Login credentials") @RequestBody LoginRequest loginRequest) {
 
 
         User user = new User();
@@ -73,8 +86,16 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid login or password");
     }
 
+    @Operation(summary = "User registration", description = "Registers a new user and returns a JWT token")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Registration successful", 
+                content = @Content(schema = @Schema(implementation = LoginResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Email already in use"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<?> register(
+            @Parameter(description = "Registration details") @RequestBody RegisterRequest registerRequest) {
         try {
             // Check if user already exists
             Optional<User> existingUser = userRepository.findByEmail(registerRequest.getEmail());
@@ -108,6 +129,13 @@ public class AuthController {
         }
     }
 
+    @Operation(summary = "Get current user", description = "Returns the authenticated user's information")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User data retrieved successfully", 
+                content = @Content(schema = @Schema(implementation = UserResponse.class))),
+        @ApiResponse(responseCode = "404", description = "User not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser() {

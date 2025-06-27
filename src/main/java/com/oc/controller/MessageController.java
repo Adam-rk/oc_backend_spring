@@ -4,6 +4,12 @@ import com.oc.dto.MessageRequest;
 import com.oc.dto.MessageResponse;
 import com.oc.model.Message;
 import com.oc.service.MessageService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,8 +34,16 @@ public class MessageController {
      * @param messageRequest The message data from the client
      * @return ResponseEntity with success message or error
      */
+    @Operation(summary = "Create a new message", description = "Creates a new message for a rental property")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Message sent successfully", 
+                content = @Content(schema = @Schema(implementation = MessageResponse.class))),
+        @ApiResponse(responseCode = "400", description = "User or rental not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @PostMapping("/messages")
-    public ResponseEntity<?> createMessage(@RequestBody MessageRequest messageRequest) {
+    public ResponseEntity<?> createMessage(
+            @Parameter(description = "Message data") @RequestBody MessageRequest messageRequest) {
         try {
             // Validate user exists
             if (!messageService.userExists(messageRequest.getUser_id())) {

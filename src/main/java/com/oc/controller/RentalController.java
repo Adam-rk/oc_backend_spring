@@ -6,6 +6,12 @@ import com.oc.dto.RentalResponse;
 import com.oc.dto.RentalsResponse;
 import com.oc.model.Rental;
 import com.oc.service.RentalService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -54,6 +60,13 @@ public class RentalController {
      * @param rentalRequest The rental data from the client
      * @return ResponseEntity with success message or error
      */
+    @Operation(summary = "Create a new rental", description = "Creates a new rental property with the provided details")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Rental created successfully",
+                content = @Content(schema = @Schema(implementation = RentalResponse.class))),
+        @ApiResponse(responseCode = "401", description = "Unauthorized - User not authenticated"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @PostMapping(value = "/rentals", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createRental(@ModelAttribute RentalRequest rentalRequest) {
         try {
@@ -85,6 +98,12 @@ public class RentalController {
      *
      * @return ResponseEntity with list of all rentals
      */
+    @Operation(summary = "Get all rentals", description = "Retrieves a list of all rental properties")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "List of rentals retrieved successfully",
+                content = @Content(schema = @Schema(implementation = RentalsResponse.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @GetMapping("/rentals")
     public ResponseEntity<?> getAllRentals() {
         try {
@@ -104,8 +123,16 @@ public class RentalController {
      * @param id The ID of the rental to retrieve
      * @return ResponseEntity with the requested rental
      */
+    @Operation(summary = "Get rental by ID", description = "Retrieves a specific rental by its ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Rental retrieved successfully",
+                content = @Content(schema = @Schema(implementation = RentalDTO.class))),
+        @ApiResponse(responseCode = "404", description = "Rental not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @GetMapping("/rentals/{id}")
-    public ResponseEntity<?> getRentalById(@PathVariable Integer id) {
+    public ResponseEntity<?> getRentalById(
+            @Parameter(description = "ID of the rental to retrieve") @PathVariable Integer id) {
         try {
             // Get rental by ID from service
             RentalDTO dto = rentalService.getRentalById(id);
@@ -128,8 +155,19 @@ public class RentalController {
      * @param rentalRequest The updated rental data
      * @return ResponseEntity with success message or error
      */
+    @Operation(summary = "Update an existing rental", description = "Updates a rental property with the provided details")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Rental updated successfully",
+                content = @Content(schema = @Schema(implementation = RentalResponse.class))),
+        @ApiResponse(responseCode = "401", description = "Unauthorized - User not authenticated"),
+        @ApiResponse(responseCode = "403", description = "Forbidden - User not authorized to update this rental"),
+        @ApiResponse(responseCode = "404", description = "Rental not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @PutMapping(value = "/rentals/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> updateRental(@PathVariable Integer id, @ModelAttribute RentalRequest rentalRequest) {
+    public ResponseEntity<?> updateRental(
+            @Parameter(description = "ID of the rental to update") @PathVariable Integer id, 
+            @Parameter(description = "Updated rental data") @ModelAttribute RentalRequest rentalRequest) {
         try {
             // Get the authenticated user
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -166,8 +204,15 @@ public class RentalController {
      * @param filename The name of the file to retrieve
      * @return ResponseEntity with the file as a resource
      */
+    @Operation(summary = "Get a file by filename", description = "Retrieves a file (image) by its filename")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "File retrieved successfully",
+                content = @Content(mediaType = "application/octet-stream")),
+        @ApiResponse(responseCode = "404", description = "File not found")
+    })
     @GetMapping("/rentals/files/{filename:.+}")
-    public ResponseEntity<Resource> getFile(@PathVariable String filename) {
+    public ResponseEntity<Resource> getFile(
+            @Parameter(description = "Name of the file to retrieve") @PathVariable String filename) {
         try {
             // Load file as resource
             Resource resource = fileStorageService.loadFileAsResource(filename);
