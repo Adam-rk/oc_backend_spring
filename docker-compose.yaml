@@ -4,10 +4,10 @@ services:
     container_name: springdb
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${SPRING_DATASOURCE_ROOT_PASSWORD}
       MYSQL_DATABASE: springdb
-      MYSQL_USER: springdb
-      MYSQL_PASSWORD: springdb
+      MYSQL_USER: ${SPRING_DATASOURCE_USERNAME}
+      MYSQL_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
@@ -21,7 +21,7 @@ services:
     restart: unless-stopped
     environment:
       PMA_HOST: db
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${SPRING_DATASOURCE_ROOT_PASSWORD}
     ports:
       - "8081:80"
     depends_on:

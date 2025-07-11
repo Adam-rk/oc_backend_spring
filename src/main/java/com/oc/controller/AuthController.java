@@ -69,8 +69,6 @@ public class AuthController {
         user.setPassword(loginRequest.getPassword());
 
         Optional<User> dbUser = userRepository.findByEmail(user.getEmail());
-        System.out.println(user.getEmail());
-        System.out.println(user.getPassword());
         if (dbUser.isPresent()) {
             User retrievedUser = dbUser.get();
             if (passwordEncoder.matches(loginRequest.getPassword(), retrievedUser.getPassword())) {
